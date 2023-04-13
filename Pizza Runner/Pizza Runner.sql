@@ -3,11 +3,11 @@ SET search_path = pizza_runner;
 
 DROP TABLE IF EXISTS runners;
 CREATE TABLE runners (
-  "runner_id" INTEGER,
-  "registration_date" DATE
+  runner_id INTEGER,
+  registration_date DATE
 );
 INSERT INTO runners
-  ("runner_id", "registration_date")
+  (runner_id, registration_date)
 VALUES
   (1, '2021-01-01'),
   (2, '2021-01-03'),
@@ -17,16 +17,16 @@ VALUES
 
 DROP TABLE IF EXISTS customer_orders;
 CREATE TABLE customer_orders (
-  "order_id" INTEGER,
-  "customer_id" INTEGER,
-  "pizza_id" INTEGER,
-  "exclusions" VARCHAR(4),
-  "extras" VARCHAR(4),
-  "order_time" TIMESTAMP
+  order_id INTEGER,
+  customer_id INTEGER,
+  pizza_id INTEGER,
+  exclusions VARCHAR(4),
+  extras VARCHAR(4),
+  order_time TIMESTAMP
 );
 
 INSERT INTO customer_orders
-  ("order_id", "customer_id", "pizza_id", "exclusions", "extras", "order_time")
+  (order_id, customer_id, pizza_id, exclusions, extras, order_time)
 VALUES
   ('1', '101', '1', '', '', '2020-01-01 18:05:02'),
   ('2', '101', '1', '', '', '2020-01-01 19:00:52'),
@@ -46,16 +46,16 @@ VALUES
 
 DROP TABLE IF EXISTS runner_orders;
 CREATE TABLE runner_orders (
-  "order_id" INTEGER,
-  "runner_id" INTEGER,
-  "pickup_time" VARCHAR(19),
-  "distance" VARCHAR(7),
-  "duration" VARCHAR(10),
-  "cancellation" VARCHAR(23)
+  order_id INTEGER,
+  runner_id INTEGER,
+  pickup_time VARCHAR(19),
+  distance VARCHAR(7),
+  duration VARCHAR(10),
+  cancellation VARCHAR(23)
 );
 
 INSERT INTO runner_orders
-  ("order_id", "runner_id", "pickup_time", "distance", "duration", "cancellation")
+  (order_id, runner_id, pickup_time, distance, duration, cancellation)
 VALUES
   ('1', '1', '2020-01-01 18:15:34', '20km', '32 minutes', ''),
   ('2', '1', '2020-01-01 19:10:54', '20km', '27 minutes', ''),
@@ -71,11 +71,11 @@ VALUES
 
 DROP TABLE IF EXISTS pizza_names;
 CREATE TABLE pizza_names (
-  "pizza_id" INTEGER,
-  "pizza_name" TEXT
+  pizza_id INTEGER,
+  pizza_name TEXT
 );
 INSERT INTO pizza_names
-  ("pizza_id", "pizza_name")
+  (pizza_id, pizza_name)
 VALUES
   (1, 'Meatlovers'),
   (2, 'Vegetarian');
@@ -83,11 +83,11 @@ VALUES
 
 DROP TABLE IF EXISTS pizza_recipes;
 CREATE TABLE pizza_recipes (
-  "pizza_id" INTEGER,
-  "toppings" TEXT
+  pizza_id INTEGER,
+  toppings TEXT
 );
 INSERT INTO pizza_recipes
-  ("pizza_id", "toppings")
+  (pizza_id, toppings)
 VALUES
   (1, '1, 2, 3, 4, 5, 6, 8, 10'),
   (2, '4, 6, 7, 9, 11, 12');
@@ -95,11 +95,11 @@ VALUES
 
 DROP TABLE IF EXISTS pizza_toppings;
 CREATE TABLE pizza_toppings (
-  "topping_id" INTEGER,
-  "topping_name" TEXT
+  topping_id INTEGER,
+  topping_name TEXT
 );
 INSERT INTO pizza_toppings
-  ("topping_id", "topping_name")
+  (topping_id, topping_name)
 VALUES
   (1, 'Bacon'),
   (2, 'BBQ Sauce'),
@@ -118,7 +118,7 @@ VALUES
 
 
 
--- QUERY A1 SOLUTION
+-- QUERY A1(How many pizzas were ordered?) SOLUTION
 -- I had to clean the table first and change the "null" string values in the [extras] & [exclusion] column to actual NULL values
 
 -- setting the 'null' string values for the exclusions column to actual NULL
@@ -137,14 +137,14 @@ FROM customer_orders;
 -- From the result we can see that 14 pizzas were ordered in total.
 
 
--- QUERY A2 SOLUTION
+-- QUERY A2 (How many unique customer orders were made?) SOLUTION
 
 SELECT COUNT(DISTINCT order_id) AS no_of_unique_orders
 FROM customer_orders;
 
 -- We have 10 unique customer orders
 
--- QUERY A3 SOLUTION
+-- QUERY A3 (How many successful orders were delivered by each runner?) SOLUTION
 
 -- Cleaned the first to get all the NULL values in the correct form/format instead of as string
 
@@ -162,7 +162,7 @@ GROUP BY runner_id;
 
 -- We can see that runner 1 has the most successful orders
 
--- QUERY A4 SOLUTION
+-- QUERY A4 (How many of each type of pizza was delivered?) SOLUTION
 
 SELECT p.pizza_name,
                 COUNT(pizza_id) AS sucessful_orders
@@ -174,7 +174,7 @@ GROUP BY pizza_id;
 
 -- We can see from the result that the Meatlover pizza has more successful deliveries
 
--- QUERY A5 SOLUTION
+-- QUERY A5 (How many Vegetarian and Meatlovers were ordered by each customer?) SOLUTION
 
 SELECT c.customer_id, 
 		p.pizza_name,
@@ -186,7 +186,7 @@ ORDER BY customer_id;
 
 -- Just from the result we can see thatthe Meatlover pizza is quite popular among the customers
 
--- QUERY A6 SOLUTION
+-- QUERY A6 (What was the maximum number of pizzas delivered in a single order?) SOLUTION
 
 SELECT c.order_id,
 		COUNT(c.order_id) AS no_of_orders
@@ -198,7 +198,7 @@ ORDER BY no_of_orders DESC;
 
 -- We can see that order_id 4 has the most pizza delivered in  one order
 
--- QUERY A7 SOLUTION
+-- QUERY A7 (For each customer, how many delivered pizzas had at least 1 change and how many had no changes?) SOLUTION
 
 -- When there is no change in the delivered pizza
 SELECT c.customer_id,
@@ -224,7 +224,7 @@ GROUP BY c.customer_id;
 
 -- After going through both tables we can see that there is more pizza with at least 1 change than pizza's without change
 
--- QUERYA8 SOLUTION
+-- QUERY A8 (How many pizzas were delivered that had both exclusions and extras?) SOLUTION
 
 SELECT c.customer_id,
 		c.order_id,
@@ -238,7 +238,7 @@ GROUP BY c.customer_id;
 
 -- We can see that order_id 10 is the only succesful order with both kind  of change(exclusion & extras)
 
--- QUERY A9 SOLUTION
+-- QUERY A9 (What was the total volume of pizzas ordered for each hour of the day?) SOLUTION
 
 SELECT CONCAT(HOUR(order_time), ':00') AS order_time,
 		COUNT(order_id) AS no_of_orders
@@ -248,7 +248,7 @@ ORDER BY no_of_orders DESC;
 
 -- From the result we can safely say there's more orders at night
 
--- QUERY A10 SOLUTION
+-- QUERY A10 (What was the volume of orders for each day of the week?) SOLUTION
 
 SELECT DAYNAME(order_time) AS order_day, 
 		COUNT(order_id) AS no_of_orders
@@ -258,7 +258,7 @@ ORDER BY no_of_orders DESC;
 
 -- Wednesdays and Saturdays seems to be the highest selling days
 
--- QUERY B1 SOLUTION
+-- QUERY B1 (How many runners signed up for each 1 week period? (i.e. week starts 2021-01-01)) SOLUTION
 
 SELECT *
 FROM runners
@@ -266,7 +266,8 @@ WHERE registration_date BETWEEN '2021-01-01' AND '2021-01-07';
 
 -- We have just 2 runners that signed up on the first week
 
--- QUERY B2 SOLUTION
+-- QUERY B2 (What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?)
+-- SOLUTION
 -- First we clean the runner_order table to fix the NULL values
 UPDATE runner_orders
 SET pickup_time = NULL
@@ -284,7 +285,7 @@ ORDER BY average_pickup_time DESC;
 
 -- From the result runner_id 3 is the fastest at pickup
 
--- QUERY B3 SOLUTION
+-- QUERY B3 (Is there any relationship between the number of pizzas and how long the order takes to prepare?) SOLUTION
 
 SELECT r.runner_id,
                 COUNT(c.order_id) AS no_of_orders,
@@ -297,7 +298,7 @@ ORDER BY average_pickup_time DESC;
 
 -- Yes there is a relationship between the no of pizza ordered and the time it ts=akes to pickup
 
--- QUERY B4 SOLUTION
+-- QUERY B4 (What was the average distance travelled for each customer?) SOLUTION
 
 -- Cleaning the data to correct the 'null' values for the distance column
 UPDATE runner_orders
@@ -315,7 +316,7 @@ ORDER BY avg_distance DESC;
 
 -- Customer_id 105 has the longest delivery time
 
--- QUERY B5 SOLUTION
+-- QUERY B5 (What was the difference between the longest and shortest delivery times for all orders?) SOLUTION
 
 -- Cleaning the data to correct the 'null' values for the durations column
 UPDATE runner_orders
@@ -337,7 +338,8 @@ ORDER BY r.duration DESC;
 
 -- From the result we can at least say the distance travelled was the major factor
 
--- QUERY B6 SOLUTION
+-- QUERY B6 (What was the average speed for each runner for each delivery and,
+-- do you notice any trend for these values?) SOLUTION
 
 SELECT r.runner_id,
 		c.order_id,
@@ -350,4 +352,9 @@ ORDER BY avg_speed DESC;
 
 -- Runner 2 has the fastest delivery speed
 
--- QUERY B7 SOLUTION
+-- QUERY B7 (What is the successful delivery percentage for each runner?) SOLUTION
+
+
+
+
+
