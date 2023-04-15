@@ -119,7 +119,7 @@ SELECT s.customer_id,
 		SUM(CASE(m.product_name)
 				WHEN "sushi" THEN m.price * 20
 				ELSE m.price * 10
-				END) customer_point
+			END) customer_point
 FROM sales s
 JOIN menu m USING(product_id)
 GROUP BY s.customer_id
