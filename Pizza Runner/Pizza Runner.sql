@@ -35,7 +35,7 @@ WHERE cancellation IN('null', '');
 -- Pulling out all the successful order count for each runner
 
 SELECT runner_id,
-                COUNT(runner_id) AS sucessful_orders
+	   COUNT(runner_id) AS sucessful_orders
 FROM runner_orders
 WHERE cancellation IS NULL
 GROUP BY runner_id;
@@ -45,7 +45,7 @@ GROUP BY runner_id;
 -- QUERY A4 (How many of each type of pizza was delivered?) SOLUTION
 
 SELECT p.pizza_name,
-                COUNT(pizza_id) AS sucessful_orders
+		COUNT(pizza_id) AS sucessful_orders
 FROM runner_orders o
 JOIN customer_orders c USING(order_id)
 JOIN pizza_names p USING(pizza_id)
@@ -81,29 +81,13 @@ LIMIT 1;
 
 -- QUERY A7 (For each customer, how many delivered pizzas had at least 1 change and how many had no changes?) SOLUTION
 
--- When there is no change in the delivered pizza
 SELECT c.customer_id,
-		c.order_id,
-		COUNT(c.order_id) AS pizzas_without_change
+       COUNT(CASE WHEN c.exclusions IS NULL AND c.extras IS NULL THEN c.order_id END) AS pizzas_without_change,
+       COUNT(CASE WHEN c.exclusions IS NOT NULL OR c.extras IS NOT NULL THEN c.order_id END) AS pizzas_with_change
 FROM customer_orders c
 JOIN runner_orders r USING(order_id)
 WHERE r.cancellation IS NULL 
-AND exclusions IS NULL 
-AND extras IS NULL
 GROUP BY c.customer_id;
-
--- When there's at least 1 change in the pizza
-SELECT c.customer_id,
-		c.order_id,
-		COUNT(c.order_id) AS pizzas_with_change
-FROM customer_orders c
-JOIN runner_orders r USING(order_id)
-WHERE r.cancellation IS NULL 
-AND exclusions IS NOT NULL 
-OR extras IS NOT NULL
-GROUP BY c.customer_id;
-
--- After going through both tables we can see that there is more pizza with at least 1 change than pizza's without change
 
 -- QUERY A8 (How many pizzas were delivered that had both exclusions and extras?) SOLUTION
 
@@ -125,7 +109,7 @@ SELECT CONCAT(HOUR(order_time), ':00') AS order_time,
 		COUNT(order_id) AS no_of_orders
 FROM customer_orders
 GROUP BY HOUR(order_time)
-ORDER BY no_of_orders DESC;
+ORDER BY order_time;
 
 -- From the result we can safely say there's more orders at night
 
@@ -143,12 +127,12 @@ ORDER BY no_of_orders DESC;
 
 SELECT *
 FROM runners
-WHERE registration_date BETWEEN '2021-01-01' AND '2021-01-07';
+WHERE registration_date BETWEEN '2021-01-01' AND DATE_ADD('2021-01-01', INTERVAL 1 WEEK);
 
--- We have just 2 runners that signed up on the first week
+-- We have just 3 runners that signed up on the first week
 
 -- QUERY B2 (What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?)
--- SOLUTION
+-- SOLUTIONr 
 -- First we clean the runner_order table to fix the NULL values
 UPDATE runner_orders
 SET pickup_time = NULL
@@ -156,28 +140,28 @@ WHERE pickup_time = 'null';
 
 -- Finding the average pickup_time
 SELECT r.runner_id,
-		c.order_id,
 		CONCAT(ROUND(AVG(TIMESTAMPDIFF(MINUTE, c.order_time, r.pickup_time)), 0), ' mins') AS average_pickup_time
 FROM customer_orders c
 JOIN runner_orders r USING(order_id)
 WHERE pickup_time IS NOT NULL
 GROUP BY r.runner_id
-ORDER BY average_pickup_time DESC;
+ORDER BY average_pickup_time;
 
 -- From the result runner_id 3 is the fastest at pickup
 
 -- QUERY B3 (Is there any relationship between the number of pizzas and how long the order takes to prepare?) SOLUTION
 
-SELECT r.runner_id,
-                COUNT(c.order_id) AS no_of_orders,
+SELECT r.order_id,
+		COUNT(c.order_id) AS no_of_orders,
 		CONCAT(ROUND(AVG(TIMESTAMPDIFF(MINUTE, c.order_time, r.pickup_time)), 0), ' mins') AS average_pickup_time
 FROM customer_orders c
 JOIN runner_orders r USING(order_id)
 WHERE pickup_time IS NOT NULL
-GROUP BY r.runner_id
-ORDER BY average_pickup_time DESC;
+GROUP BY r.order_id
+ORDER BY average_pickup_time;
 
--- Yes there is a relationship between the no of pizza ordered and the time it ts=akes to pickup
+-- Yes there is a relationship between the no of pizza ordered and the time it takes to pickup as we can see an increase in the average pickup time
+-- as the number of pizzas increase except for a single outlier.
 
 -- QUERY B4 (What was the average distance travelled for each customer?) SOLUTION
 
@@ -189,7 +173,7 @@ WHERE distance = 'null';
 -- Finding the average delivery time for each customer
 
 SELECT c.customer_id,
-                CONCAT(ROUND(AVG(distance), 1), ' KM') AS avg_distance
+		CONCAT(ROUND(AVG(distance), 1), ' KM') AS avg_distance
 FROM runner_orders r
 JOIN customer_orders c USING(order_id)
 GROUP BY customer_id
@@ -205,17 +189,17 @@ SET duration = NULL
 WHERE duration = 'null';
 
 -- Finding the difference between the longest and shortest delivery
-SELECT r.order_id,
-                c.exclusions,
-                c.extras,
-                r.distance,
-                CONCAT(SUBSTR(r.duration, 1, 2), 'mins') AS duration
-FROM runner_orders r
-JOIN customer_orders c USING(order_id)
-WHERE r.duration IS NOT NULL
-AND r.cancellation IS NULL
-GROUP BY r.order_id
-ORDER BY r.duration DESC;
+WITH delivery_time AS(
+	SELECT r.order_id,
+			SUBSTR(r.duration, 1, 2) AS duration
+	FROM runner_orders r
+	JOIN customer_orders c USING(order_id)
+	WHERE r.duration IS NOT NULL
+	AND r.cancellation IS NULL
+	GROUP BY r.order_id)
+    
+SELECT CONCAT(MAX(duration) - MIN(duration), ' mins') diffrence_btwn_logest_and_shortest_delivery
+FROM delivery_time;
 
 -- From the result we can at least say the distance travelled was the major factor
 
@@ -224,47 +208,50 @@ ORDER BY r.duration DESC;
 
 SELECT r.runner_id,
 		c.order_id,
-                CONCAT(ROUND(AVG(r.distance / r.duration), 1), ' km/hr') AS avg_speed
+        r.distance,
+		CONCAT(ROUND(AVG(r.distance / r.duration), 1), ' km/hr') AS avg_speed
 FROM runner_orders r
 JOIN customer_orders c USING(order_id)
 WHERE r.cancellation IS NULL
 GROUP BY r.runner_id, r.order_id
 ORDER BY avg_speed DESC;
 
--- Runner 2 has the fastest delivery speed
+-- Runner 2 has the fastest delivery speed and there is no trend in the distance and average speed of the runners
 
 -- QUERY B7 (What is the successful delivery percentage for each runner?) SOLUTION
 
--- I start by creating a view that shows the total amount of delivery made by each runner
+-- I start by creating a CTE that shows the total amount of delivery made by each runner
 
-CREATE VIEW delivery AS (
+WITH delivery AS (
 	SELECT runner_id,
 			COUNT(order_id) AS all_delivery
 	FROM runner_orders
-	GROUP BY runner_id);
+	GROUP BY runner_id),
 
--- then we use the delivery view to create another view that shows the successful delivery vs all delivery
+-- then we use the delivery CTE to create another CTE that shows the successful delivery vs all delivery
 
-CREATE VIEW s_delivery AS (
+s_delivery AS (
 	SELECT ro.runner_id,
 			d.all_delivery,
 			COUNT(order_id) AS successful_delivery
 	FROM runner_orders ro
 	JOIN delivery d USING(runner_id)
 	WHERE ro.cancellation IS NULL
-	GROUP BY ro.runner_id);
+	GROUP BY ro.runner_id)
 
 -- then I finally query that table and calculated the percentage of succesful  delivery of each runner
 SELECT *,
 		CONCAT(ROUND((successful_delivery / all_delivery) * 100, 0), "%") AS delivery_percentage
 FROM s_delivery;
 
--- we can now see that runner 1 is the most successful delivery
+-- we can now see that runner 1 has the highest delivery
 
 -- QUERY C1 (What are the standard ingredients for each pizza?) SOLUTION
 
-SELECT *
-FROM pizza_recipes;
+SELECT pn.pizza_name,
+		pr.toppings
+FROM pizza_recipes pr
+JOIN pizza_names pn ON pr.pizza_id = pn.pizza_id;
 
 -- QUERY C2 (What was the most commonly added extra?) SOLUTION
 
@@ -272,12 +259,6 @@ SELECT order_id,
 		pizza_id,
                 COUNT(DISTINCT extras)
 FROM customer_orders;
-
-
-
-
-
-
 
 
 -- QUERY C3 (What was the most common exclusion?) SOLUTION
