@@ -26,7 +26,7 @@ The dataset for this challenge was gotten from the the [8 WEEKS SQL CHALLENGE](h
 ### runers
 ![](images/runners_db.png)
 ### customer_orders
-![](images/customer_orders_db.png)
+![](images/customers_orders_db.png)
 ### runner_orders
 ![](images/runner_orders_db.png)
 ### pizza_names
