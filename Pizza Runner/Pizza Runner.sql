@@ -248,16 +248,26 @@ FROM s_delivery;
 
 -- QUERY C1 (What are the standard ingredients for each pizza?) SOLUTION
 
-SELECT pn.pizza_name,
-		pr.toppings
+SELECT pn.pizza_name, STRING_AGG(pt.topping_name, ',') as standard_toppings
 FROM pizza_recipes pr
-JOIN pizza_names pn ON pr.pizza_id = pn.pizza_id;
+LEFT JOIN pizza_toppings pt
+ON pt.topping_id = ANY(STRING_TO_ARRAY(pr.toppings, ',')::NUMERIC[])
+JOIN pizza_names pn USING (pizza_id)
+GROUP BY pn.pizza_name;
 
 -- QUERY C2 (What was the most commonly added extra?) SOLUTION
 
+-- first I will clean the table to show null values as actual NULL
+
+UPDATE customer_orders
+SET extras = NULL
+WHERE extras IN('null', '')
+
+-- now to find the commonly added extra
+
 SELECT order_id,
 		pizza_id,
-                COUNT(DISTINCT extras)
+		UNNEST(REGEXP_SPLIT_TO_ARRAY(extras, ',')) extras
 FROM customer_orders;
 
 
