@@ -127,7 +127,7 @@ ORDER BY no_of_orders DESC;
 
 SELECT *
 FROM runners
-WHERE registration_date BETWEEN '2021-01-01' AND DATE_ADD('2021-01-01', INTERVAL 1 WEEK);
+WHERE registration_date BETWEEN '2021-01-01' AND '2021-01-07';
 
 -- We have just 3 runners that signed up on the first week
 
