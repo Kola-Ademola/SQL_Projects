@@ -247,12 +247,16 @@ FROM s_delivery;
 -- we can now see that runner 1 has the highest delivery
 
 -- QUERY C1 (What are the standard ingredients for each pizza?) SOLUTION
-
-SELECT pn.pizza_name, STRING_AGG(pt.topping_name, ',') as standard_toppings
-FROM pizza_recipes pr
-LEFT JOIN pizza_toppings pt
-ON pt.topping_id = ANY(STRING_TO_ARRAY(pr.toppings, ',')::NUMERIC[])
-JOIN pizza_names pn USING (pizza_id)
+WITH recipe AS(
+	SELECT pizza_id,
+			UNNEST(STRING_TO_ARRAY(toppings, ','))::NUMERIC toppings_id
+	FROM pizza_recipes
+)
+SELECT pn.pizza_name,
+		STRING_AGG(pt.topping_name, ',  ') toppings
+FROM recipe r
+JOIN pizza_toppings pt ON r.toppings_id = pt.topping_id
+JOIN pizza_names pn ON r.pizza_id = pn.pizza_id
 GROUP BY pn.pizza_name;
 
 -- QUERY C2 (What was the most commonly added extra?) SOLUTION
@@ -272,3 +276,5 @@ FROM customer_orders;
 
 
 -- QUERY C3 (What was the most common exclusion?) SOLUTION
+
+
