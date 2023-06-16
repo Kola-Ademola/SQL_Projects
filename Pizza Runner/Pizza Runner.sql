@@ -274,6 +274,18 @@ SELECT order_id,
 		UNNEST(REGEXP_SPLIT_TO_ARRAY(extras, ',')) extras
 FROM customer_orders;
 
+WITH order_extras AS(
+	SELECT order_id,
+		    UNNEST(STRING_TO_ARRAY(extras, ','))::NUMERIC extras
+	FROM customer_orders
+)
+SELECT p.topping_name,
+		COUNT(*) extras_count
+FROM order_extras o
+JOIN pizza_toppings p ON o.extras = p.topping_id
+GROUP BY p.topping_name
+ORDER BY extras_count DESC;
+
 
 -- QUERY C3 (What was the most common exclusion?) SOLUTION
 
