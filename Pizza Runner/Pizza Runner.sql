@@ -265,14 +265,9 @@ GROUP BY pn.pizza_name;
 
 UPDATE customer_orders
 SET extras = NULL
-WHERE extras IN('null', '')
+WHERE extras IN('null', '');
 
 -- now to find the commonly added extra
-
-SELECT order_id,
-		pizza_id,
-		UNNEST(REGEXP_SPLIT_TO_ARRAY(extras, ',')) extras
-FROM customer_orders;
 
 WITH order_extras AS(
 	SELECT order_id,
@@ -288,5 +283,22 @@ ORDER BY extras_count DESC;
 
 
 -- QUERY C3 (What was the most common exclusion?) SOLUTION
+-- first I will clean the table to show null values as actual NULL
 
+UPDATE customer_orders
+SET exclusions = NULL
+WHERE exclusions IN('null', '');
 
+-- now to find the commonly added exclusions
+
+WITH order_exclusions AS(
+	SELECT order_id,
+		    UNNEST(STRING_TO_ARRAY(exclusions, ','))::NUMERIC exclusions
+	FROM customer_orders
+)
+SELECT p.topping_name,
+		COUNT(*) exclusions_count
+FROM order_exclusions o
+JOIN pizza_toppings p ON o.exclusions = p.topping_id
+GROUP BY p.topping_name
+ORDER BY exclusions_count DESC;
