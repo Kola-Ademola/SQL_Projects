@@ -220,13 +220,18 @@ ORDER BY avg_speed DESC;
 
 -- QUERY B7 (What is the successful delivery percentage for each runner?) SOLUTION
 
+UPDATE runner_orders
+SET cancellation = NULL
+WHERE cancellation IN('null', 'NaN', '');
+
 -- I start by creating a CTE that shows the total amount of delivery made by each runner
 
 WITH delivery AS (
 	SELECT runner_id,
 			COUNT(order_id) AS all_delivery
 	FROM runner_orders
-	GROUP BY runner_id),
+	GROUP BY runner_id
+),
 
 -- then we use the delivery CTE to create another CTE that shows the successful delivery vs all delivery
 
@@ -237,11 +242,12 @@ s_delivery AS (
 	FROM runner_orders ro
 	JOIN delivery d USING(runner_id)
 	WHERE ro.cancellation IS NULL
-	GROUP BY ro.runner_id)
+	GROUP BY ro.runner_id, d.all_delivery
+)
 
 -- then I finally query that table and calculated the percentage of succesful  delivery of each runner
 SELECT *,
-		CONCAT(ROUND((successful_delivery / all_delivery) * 100, 0), "%") AS delivery_percentage
+		((successful_delivery::FLOAT / all_delivery::FLOAT) * 100) || '%' AS delivery_percentage
 FROM s_delivery;
 
 -- we can now see that runner 1 has the highest delivery
@@ -258,6 +264,12 @@ FROM recipe r
 JOIN pizza_toppings pt ON r.toppings_id = pt.topping_id
 JOIN pizza_names pn ON r.pizza_id = pn.pizza_id
 GROUP BY pn.pizza_name;
+
+/*
+This is the standard ingredients for each pizza;
+Meatlovers -->	"BBQ Sauce,  Pepperoni,  Cheese,  Salami,  Chicken,  Bacon,  Mushrooms,  Beef"
+Vegetarian -->	"Tomato Sauce,  Cheese,  Mushrooms,  Onions,  Peppers,  Tomatoes"
+*/
 
 -- QUERY C2 (What was the most commonly added extra?) SOLUTION
 
