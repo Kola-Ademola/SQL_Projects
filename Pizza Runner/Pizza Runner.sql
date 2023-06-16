@@ -291,8 +291,10 @@ SELECT p.topping_name,
 FROM order_extras o
 JOIN pizza_toppings p ON o.extras = p.topping_id
 GROUP BY p.topping_name
-ORDER BY extras_count DESC;
+ORDER BY extras_count DESC
+LIMIT 1;
 
+-- Bacon is the commonly added extra
 
 -- QUERY C3 (What was the most common exclusion?) SOLUTION
 -- first I will clean the table to show null values as actual NULL
@@ -301,7 +303,7 @@ UPDATE customer_orders
 SET exclusions = NULL
 WHERE exclusions IN('null', '');
 
--- now to find the commonly added exclusions
+-- now to find the most common exclusions
 
 WITH order_exclusions AS(
 	SELECT order_id,
@@ -313,4 +315,7 @@ SELECT p.topping_name,
 FROM order_exclusions o
 JOIN pizza_toppings p ON o.exclusions = p.topping_id
 GROUP BY p.topping_name
-ORDER BY exclusions_count DESC;
+ORDER BY exclusions_count DESC
+LIMIT 1;
+
+-- Cheese is the most common exclusions
